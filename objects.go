@@ -1,11 +1,7 @@
 package pdf
 
-import (
-	"fmt"
-	"io"
-	"sort"
-	"strings"
-)
+import "io"
+import "sort"
 
 func (d *Document) NewLitString(s string) LitString {
 	ls := LitString{
@@ -25,45 +21,26 @@ func (ls LitString) write(w io.Writer) {
 }
 
 func balance(s string) string {
-	/*
-		iterera genom strängen
-			om balance < 0
-				markera indexet som obalanserat
-				återställ balansen
-		om balansen är positiv n
-			ta de n sista öppningsparenteserna och markera dem som obalanserade
-		sortera listan med obalanserade index
-		inserta backslash i strängen bakifrån
-	*/
-	balance := 0
-	unbalanced := []int{}
-	for i, c := range s {
-		if c == '(' {
-			balance++
-		} else if c == ')' {
-			balance--
-		}
-		if balance < 0 {
-			unbalanced = append(unbalanced, i)
-			balance = 0
-		}
-	}
-	if balance > 0 {
-		for i := 0; i < balance; i++ {
-			j := len(s)
-			for {
-				j = strings.LastIndex(s[:j], "(")
-				if len(unbalanced) == 0 || unbalanced[len(unbalanced)-1] != j {
-					unbalanced = append(unbalanced, j)
-					fmt.Println("adding", j)
-					break
-				}
+	stack := []int{}
+	backslashList := []int{}
+
+	for i, r := range s {
+		if r == '(' {
+			stack = append(stack, i)
+		} else if r == ')' {
+			if len(stack) == 0 {
+				backslashList = append(backslashList, i)
+			} else {
+				stack = stack[:len(stack)-1]
 			}
 		}
 	}
-	sort.Ints(unbalanced)
-	for i := len(unbalanced) - 1; i >= 0; i-- {
-		s = s[:unbalanced[i]] + "\\" + s[unbalanced[i]:]
+	if len(stack) > 0 {
+		backslashList = append(backslashList, stack...)
+	}
+	sort.Ints(backslashList)
+	for i := len(backslashList) - 1; i >= 0; i-- {
+		s = s[:backslashList[i]] + "\\" + s[backslashList[i]:]
 	}
 	return s
 }

@@ -37,7 +37,7 @@ var balanceCases = []struct {
 	want  string
 }{
 	{"((hello))", "((hello))"},
-	{"((hello)", "(\\(hello)"},
+	{"((hello)", "\\((hello)"},
 	{"(hello))", "(hello)\\)"},
 	{"(there(is)no()spoon)()(", "(there(is)no()spoon)()\\("},
 	{"(fix(this(", "\\(fix\\(this\\("},
