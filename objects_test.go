@@ -2,6 +2,8 @@ package pdf
 
 import "testing"
 
+import "bytes"
+
 var newLitStringCases = []struct {
 	text string
 	want LitString
@@ -50,6 +52,28 @@ func TestBalance(t *testing.T) {
 		got := balance(c.input)
 		if got != c.want {
 			t.Fatalf("Case %d: Wanted '%v', got '%v'", i+1, c.want, got)
+		}
+	}
+}
+
+var WriteLitStrCases = []struct {
+	input string
+	want  string
+}{
+	{
+		"This is (just) a test :)",
+		"1 0 obj\n(This is (just) a test :\\))\nendobj",
+	},
+}
+
+func TestWriteLitString(t *testing.T) {
+	doc := NewDocument()
+	for i, c := range WriteLitStrCases {
+		ls := doc.NewLitString(c.input)
+		var buf bytes.Buffer
+		ls.write(&buf)
+		if buf.String() != c.want {
+			t.Fatalf("Case %d:\nWanted\n%v\n\nGot\n%v", i, c.want, buf.String())
 		}
 	}
 }

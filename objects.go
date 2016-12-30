@@ -2,7 +2,11 @@ package pdf
 
 import "io"
 import "sort"
+import "strconv"
 
+// NewLitString creates a new literal string.
+// TODO: Add some stuff about how octal values can be used to print
+// characters outside 7 bit ASCII.
 func (d *Document) NewLitString(s string) LitString {
 	ls := LitString{
 		Object{
@@ -16,8 +20,8 @@ func (d *Document) NewLitString(s string) LitString {
 }
 
 func (ls LitString) write(w io.Writer) {
-	ls.s = balance(ls.s)
-	//w.Write()
+	w.Write([]byte(strconv.Itoa(ls.num) + " " + strconv.Itoa(ls.gen) + " obj\n"))
+	w.Write([]byte("(" + balance(ls.s) + ")\nendobj"))
 }
 
 func balance(s string) string {
