@@ -48,3 +48,7 @@ func balance(s string) string {
 	}
 	return s
 }
+
+func (o Object) write(w io.Writer) {
+
+}
