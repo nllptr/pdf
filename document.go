@@ -3,7 +3,6 @@ package pdf
 import (
 	"fmt"
 	"io"
-	"log"
 	"strconv"
 )
 
@@ -19,7 +18,7 @@ func (d *Document) Write(w io.Writer) error {
 	d.cOffset += d.header.write(w)
 	d.body.write(w, &d.cOffset)
 	d.writeXref(w)
-	w.Write([]byte("%%EOF"))
+	d.writeTrailer(w)
 	return nil
 }
 
@@ -34,8 +33,6 @@ func (h *Header) write(w io.Writer) int {
 		}
 		bytes, _ = w.Write(append([]byte("%"), append(binaryBytes, '\n')...))
 		offset += bytes
-		//w.Write(binaryBytes)
-		//w.Write([]byte("\n"))
 	}
 	return offset
 }
@@ -50,26 +47,30 @@ func (b *Body) write(w io.Writer, offset *int) {
 }
 
 func (d *Document) writeXref(w io.Writer) {
-	/*
-		xref
-		förstaobjnr antalobj
-		0000000000 65535 f <<-- head of free objects linked list
-		nnnnnnnnnn ggggg n eol <<-- för varje objekt
-
-		nnnnnnnnnn 10 siffror offset från början av filen till objekt
-		ggggg generationsnumer, alltid 0 vid skapande
-		n/f n=in use, f=free (vid modifiering, ej aktuellt)
-		eol CR+newline eller space + en eol character " \n"
-	*/
-	log.Println(d.cOffset)
+	d.xref = Xref(d.cOffset)
 	xref := "xref\n" +
 		"0 " + strconv.Itoa(len(d.body)+1) + "\n" +
 		"0000000000 65535 f\n"
-	w.Write([]byte(xref))
+	bytes, _ := w.Write([]byte(xref))
+	d.cOffset += bytes
 	for _, o := range d.body {
-		fmt.Fprintf(w, "%010d 00000 n \n", o.offset)
-		//xref += strconv.Itoa(o.offset)
-		//xref += " 00000 n \n"
+		bytes, _ = fmt.Fprintf(w, "%010d 00000 n \n", o.offset)
+		d.cOffset += bytes
 	}
-	//w.Write([]byte(xref))
+
+	bytes, _ = w.Write([]byte("\n"))
+	d.cOffset += bytes
+}
+
+func (d *Document) writeTrailer(w io.Writer) {
+	w.Write([]byte("trailer\n"))
+	/*
+		TODO: Trailer doctionary
+		Required: "Size"; equals highest object number + 1
+				  "Root"; Catalog dictionary
+				  "ID"; Strongly recommended
+	*/
+	w.Write([]byte("startxref\n"))
+	fmt.Fprintf(w, "%d\n", d.xref)
+	w.Write([]byte("%%EOF"))
 }

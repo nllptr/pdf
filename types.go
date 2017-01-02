@@ -18,7 +18,7 @@ type Header struct {
 // Body contains Objects or Object streams, which are sequences of objects.
 type Body []Object
 
-type Xref string
+type Xref int
 
 type Trailer string
 
