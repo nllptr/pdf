@@ -70,6 +70,9 @@ func (d *Document) writeTrailer(w io.Writer) {
 				  "Root"; Catalog dictionary
 				  "ID"; Strongly recommended
 	*/
+	w.Write([]byte("<<\n"))
+	w.Write([]byte("/Size " + strconv.Itoa(len(d.body)+1) + "\n"))
+	w.Write([]byte(">>\n"))
 	w.Write([]byte("startxref\n"))
 	fmt.Fprintf(w, "%d\n", d.xref)
 	w.Write([]byte("%%EOF"))
