@@ -1,28 +1,44 @@
 package pdf
 
-import "io"
-import "sort"
+import (
+	"io"
+	"sort"
+)
+
 import "strconv"
 
 // NewLitString creates a new literal string.
 // TODO: Add some stuff about how octal values can be used to print
 // characters outside 7 bit ASCII.
-func (d *Document) NewLitString(s string) LitString {
+func (d *Document) NewLitString(s string) {
 	ls := LitString{
 		Object{
 			len(d.body) + 1,
 			0,
+			0,
 			s,
 		},
 	}
+	ls.s = strconv.Itoa(ls.num) + " " + strconv.Itoa(ls.gen) + " obj\n"
+	ls.s += "(" + balance(s) + ")\nendobj"
 	d.body = append(d.body, ls.Object)
-	return ls
 }
 
-func (ls LitString) write(w io.Writer) {
-	w.Write([]byte(strconv.Itoa(ls.num) + " " + strconv.Itoa(ls.gen) + " obj\n"))
-	w.Write([]byte("(" + balance(ls.s) + ")\nendobj"))
+func (o *Object) write(w io.Writer, offset *int) {
+	o.offset = *offset
+	bytes, _ := w.Write([]byte(o.s))
+	*offset += bytes
 }
+
+//func (ls LitString) write(w io.Writer, offset *int) {
+/*
+	ls.offset = *offset
+	bytes, _ := w.Write([]byte(strconv.Itoa(ls.num) + " " + strconv.Itoa(ls.gen) + " obj\n"))
+	*offset += bytes
+	bytes, _ = w.Write([]byte("(" + balance(ls.s) + ")\nendobj"))
+	*offset += bytes
+*/
+//}
 
 func balance(s string) string {
 	stack := []int{}
@@ -47,8 +63,4 @@ func balance(s string) string {
 		s = s[:backslashList[i]] + "\\" + s[backslashList[i]:]
 	}
 	return s
-}
-
-func (o Object) write(w io.Writer) {
-
 }

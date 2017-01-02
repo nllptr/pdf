@@ -7,6 +7,7 @@ type Document struct {
 	body    Body
 	xref    Xref
 	trailer Trailer
+	cOffset int
 }
 
 type Header struct {
@@ -24,14 +25,15 @@ type Trailer string
 // Object represents indirect objects according to the PDF spec. An
 // indirect object has an object number and a generation number.
 type Object struct {
-	num int
-	gen int
-	s   string
+	num    int
+	gen    int
+	offset int
+	s      string
 }
 
 // ObjectWriter declares the write method that writes the object.
 type ObjectWriter interface {
-	write(io.Writer)
+	write(io.Writer, *int)
 }
 
 // LitString represents the "Literal string" according to the PDF spec.

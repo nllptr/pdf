@@ -12,8 +12,9 @@ func TestNew(t *testing.T) {
 }
 
 var headerWriteCases = []struct {
-	h    Header
-	want string
+	h         Header
+	want      string
+	wantBytes int
 }{
 	{
 		Header{
@@ -21,6 +22,7 @@ var headerWriteCases = []struct {
 			false,
 		},
 		"%PDF-1.7\n",
+		9,
 	},
 	{
 		Header{
@@ -28,16 +30,20 @@ var headerWriteCases = []struct {
 			true,
 		},
 		"%PDF-1.7\n%" + string([]byte{128, 128, 128, 128}) + "\n",
+		15,
 	},
 }
 
 func TestHeaderWrite(t *testing.T) {
 	for i, c := range headerWriteCases {
 		var b bytes.Buffer
-		c.h.write(&b)
+		gotBytes := c.h.write(&b)
 		got := b.String()
 		if got != c.want {
 			t.Fatalf("Case %d:\nWanted:\n%v\n\nGot:\n%v\n\n", i+1, c.want, got)
+		}
+		if gotBytes != c.wantBytes {
+			t.Fatalf("Case %d: Wanted %d bytes, got %d bytes", i+1, c.wantBytes, gotBytes)
 		}
 	}
 }
